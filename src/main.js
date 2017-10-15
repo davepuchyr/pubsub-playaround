@@ -37,6 +37,7 @@ class MyBundle extends libp2p {
     const modules = {
       transport: [
         wstar,
+        new TCP(),
         new WebSockets()
       ],
       connection: {
@@ -63,6 +64,7 @@ function createNode (callback) {
     (peerInfo, cb) => {
       // peerInfo.multiaddrs.add('/ip4/0.0.0.0/tcp/0')
       const peerIdStr = peerInfo.id.toB58String()
+      console.log(peerIdStr)
       const ma = `/dns4/star-signal.cloud.ipfs.team/wss/p2p-webrtc-star/ipfs/${peerIdStr}`
       peerInfo.multiaddrs.add(ma)
 
@@ -73,30 +75,32 @@ function createNode (callback) {
 }
 
 parallel([
-  (cb) => createNode(cb),
   (cb) => createNode(cb)
 ], (err, nodes) => {
   if (err) { throw err }
 
   const node1 = nodes[0]
-  const node2 = nodes[1]
 
   const fs1 = new FloodSub(node1)
-  const fs2 = new FloodSub(node2)
 
   series([
     (cb) => fs1.start(cb),
-    (cb) => fs2.start(cb),
+
     (cb) => node1.once('peer:discovery', (peer) => node1.dial(peer, cb)),
+
     (cb) => setTimeout(cb, 500)
   ], (err) => {
     if (err) { throw err }
 
-    fs2.on('news', (msg) => console.log(msg.from, msg.data.toString()))
-    fs2.subscribe('news')
+    // fs1.on('news', (msg) => console.log(msg.from, msg.data.toString() ))
+    fs1.subscribe('news')
+
+    // (cb) => document.getElementById('tinput').addEventListener('input', node1.dial( document.getElementById('tinput').value, cb))
+    fs1.on('news', (msg) => console.log(msg.from, msg.data.toString()))
+    fs1.subscribe('news')
 
     setInterval(() => {
-      fs1.publish('news', Buffer.from('Bird bird bird, bird is the word!'))
+      fs1.publish('news', Buffer.from(Date.now().toString()))
     }, 1000)
   })
 })
