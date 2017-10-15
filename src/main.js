@@ -65,8 +65,12 @@ function createNode (callback) {
       // peerInfo.multiaddrs.add('/ip4/0.0.0.0/tcp/0')
       const peerIdStr = peerInfo.id.toB58String()
       console.log(peerIdStr)
-      const ma = `/dns4/star-signal.cloud.ipfs.team/wss/p2p-webrtc-star/ipfs/${peerIdStr}`
+      // const ma2 = `/dns4/star-signal.cloud.ipfs.team/wss/p2p-webrtc-star/ipfs/${peerIdStr}`
+
+      //uses local webrtc signaling server:
+      const ma = `/ip4/127.0.0.1/tcp/9090/ws/p2p-webrtc-star/ipfs/${peerIdStr}`
       peerInfo.multiaddrs.add(ma)
+      // peerInfo.multiaddrs.add(ma2)
 
       node = new MyBundle(peerInfo)
       node.start(cb)
@@ -93,7 +97,6 @@ parallel([
     if (err) { throw err }
 
     // fs1.on('news', (msg) => console.log(msg.from, msg.data.toString() ))
-    fs1.subscribe('news')
 
     // (cb) => document.getElementById('tinput').addEventListener('input', node1.dial( document.getElementById('tinput').value, cb))
     fs1.on('news', (msg) => console.log(msg.from, msg.data.toString()))
